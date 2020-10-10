@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 private const val TAG = "MainActivity"
 private const val INITIAL_TIP_PERCENT = 15
+private const val INITIAL_SPLIT = 0
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,12 +21,27 @@ class MainActivity : AppCompatActivity() {
 
         seekBarTip.progress = INITIAL_TIP_PERCENT
         tvTipPercent.text = "$INITIAL_TIP_PERCENT%"
+        seekBarSplit.progress = INITIAL_SPLIT
+        tvSplitNumber.text = "${INITIAL_SPLIT + 1}"
         updateTipDescription(INITIAL_TIP_PERCENT)
         seekBarTip.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 Log.i(TAG, "onProgressChanged $progress")
                 tvTipPercent.text = "$progress%"
                 updateTipDescription(progress)
+                computeTipAndTotal()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+        })
+
+        seekBarSplit.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.i(TAG, "Split onProgressChanged $progress")
+                tvSplitNumber.text = "${progress + 1}"
                 computeTipAndTotal()
             }
 
@@ -50,11 +66,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateTipDescription(tipPercent: Int) {
         val tipDescription: String = when (tipPercent) {
-            in 0..9 -> "Poor"
-            in 10..14 -> "Acceptable"
-            in 15..19 -> "Good"
-            in 20..24 -> "Great"
-            else -> "Amazing"
+            in 0..9 -> "\uD83D\uDE20"
+            in 10..14 -> "\uD83D\uDE10"
+            in 15..19 -> "\uD83D\uDE42"
+            in 20..24 -> "\uD83D\uDE0A"
+            else -> "\uD83E\uDD70"
         }
         tvTipDescription.text = tipDescription
         val color = ArgbEvaluator().evaluate(
@@ -70,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         if (etBase.text.isEmpty()) {
             tvTipAmount.text = ""
             tvTotalAmount.text = ""
+            tvSplitAmount.text = ""
             return
         }
         val baseAmount = etBase.text.toString().toDouble()
@@ -78,5 +95,9 @@ class MainActivity : AppCompatActivity() {
         val totalAmount = baseAmount + tipAmount
         tvTipAmount.text = "%.2f".format(tipAmount)
         tvTotalAmount.text = "%.2f".format(totalAmount)
+        val splitNum = seekBarSplit.progress + 1
+        val splitAmount = totalAmount / splitNum
+        tvSplitAmount.text = "%.2f".format(splitAmount)
     }
+
 }
